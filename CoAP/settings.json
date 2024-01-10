@@ -1,0 +1,15 @@
+{
+  "name": "caop client settings",
+  "version": "V1.0",
+  "description": "Settings voor coap client",
+  "date": "2024-01-08",
+  "items": [
+    { "key": "KEY_SERVER_IP", "value": "172.16.14.202" },
+    { "key": "KEY_SERVER_PORT", "value": 5683 },
+    { "key": "KEY_LOG_DIR", "value": ""/var/log/easylogicSystem/coapClient" },
+    { "key": "KEY_SERVER_PATH", "value": "coap://172.16.14.202:5683/tags/"},
+    { "key": "KEY_SERVER_PROXY", "value": "http://172.16.14.202:5683/"}
+  ]
+}
+
+
