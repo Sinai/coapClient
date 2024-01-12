@@ -15,6 +15,8 @@ from coapthon.utils import parse_uri
 from settingshelper import SettingsHelper
 from os.path import join, isfile, isdir
 from os import mkdir, getcwd
+from coapthon.layers.messagelayer import MessageLayer
+
 
 class CoapClient():
   
@@ -50,7 +52,11 @@ class CoapClient():
       self.token = str.encode(str(token)) #convert it to bytes
         
 
-
+   def receive_response_get(self, response):
+       self.logger.info("call to receive_response_get")
+       if response!=None and response!="":
+          self.logger.info("FROM RECEIVE_RESPONSE Got the following response:")
+          self.logger.info(response)
 
 
    def starClient(self):
@@ -109,6 +115,15 @@ class CoapClient():
           return payloadComplete
        return None
 
+   def handleGet(self, response):
+       if response!=None and response!="":
+          payload = response.payload
+          code = response.code
+          self.logger.info("Received the following GET, payload: %s" % str(payload))
+          self.logger.info("Received the following GET, code: %s" % str(code))
+       else:
+          self.logger.error("Received an empty response")
+
    def operation(self, operation, payload):
        self.logger.info("CoAP client operation: %s , with payload: %s " % (operation, payload))
        if operation=="PUT":
@@ -133,6 +148,15 @@ class CoapClient():
              #self.client.stop()
           else:
              self.logger.error("Error while performing a DELETE operation, client: %s,  path: %s , proxy: %s" % (self.client, self.path, self.proxy))  
+       elif operation=="GET":
+          if self.path!=None and self.proxy!=None and self.client!=None:
+             recieved = self.client.get(self.path, self.proxy, self.receive_response_get)
+             time.sleep(10) # wait for response
+             self.logger.info("Response: ")
+             self.logger.info(recieved)
+             self.handleGet(recieved)
+          else:
+             self.logger.error("Error while performing a GET operation, client: %s,  path: %s , proxy: %s" % (self.client, self.path, self.proxy))
 
 
    def stop(self):
