@@ -2,6 +2,7 @@
 
 import os
 import time
+from datetime import datetime
 import json
 import ipaddress
 import sys
@@ -31,6 +32,9 @@ class CoapClient():
       self.logger = None
       self.helper = None
       self.token = None
+      self.date = None
+      self.dateFormat = None
+      self.data = {}
       self.currentPath=os.getcwd()
    
    def initialize(self):
@@ -44,9 +48,13 @@ class CoapClient():
       self.completePath = self.helper.getSettingValue("KEY_SERVER_PATH")
       self.proxy = self.helper.getSettingValue("KEY_SERVER_PROXY")
       self.host, self.port, self.path = parse_uri(self.completePath)
+
+      #get datetime format
+      self.dateFormat = self.helper.getSettingValue("KEY_DATETIME_FORMAT")
       #hablde logging
       self.setLogger()
-      #get Token
+      self.logger.info("the date formatter After the settings value: %s"% self.dateFormat)
+      #get Token     
       token = self.helper.getSettingValue("KEY_SECURITY_TOKEN") 
       self.logger.info("I got the following token from settings: %s" % token)
       self.token = str.encode(str(token)) #convert it to bytes
@@ -115,6 +123,19 @@ class CoapClient():
           return payloadComplete
        return None
 
+   def completePayload(self, payload):
+       if self.dateFormat != None:
+          self.logger.info("the date formatter: %s"% self.dateFormat)
+          date = datetime.now().strftime(self.dateFormat)
+          self.logger.info("The DATE: %s"%date)
+          self.data['Date'] =  date
+          self.data['DeviceId'] = "11233433"
+          self.data['tag']  = payload
+          json_data = json.dumps(self.data)
+          return json_data
+       return None   
+
+
    def handleGet(self, response):
        if response!=None and response!="":
           payload = response.payload
@@ -162,4 +183,4 @@ class CoapClient():
    def stop(self):
        if self.client != None:
           self.client.stop()
-       sys.exit(0)   
+       

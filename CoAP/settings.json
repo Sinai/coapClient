@@ -8,7 +8,8 @@
     { "key": "KEY_SERVER_PORT", "value": 5683 },
     { "key": "KEY_LOG_DIR", "value": ""/var/log/easylogicSystem/coapClient" },
     { "key": "KEY_SERVER_PATH", "value": "coap://172.16.14.202:5683/tags/"},
-    { "key": "KEY_SERVER_PROXY", "value": "http://172.16.14.202:5683/"}
+    { "key": "KEY_SERVER_PROXY", "value": "http://172.16.14.202:5683/"},
+    { "key": "KEY_DATETIME_FORMAT", "value": "%Y-%m-%dT%H:%M:%S.%fZ"}
   ]
 }
 

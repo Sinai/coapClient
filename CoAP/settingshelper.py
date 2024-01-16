@@ -23,6 +23,7 @@ class SettingsHelper:
         self.settings = None
         self.version = ""
         self.isDirty = False
+ 
 
     def initialize(self):
         print("In the begining of initialization\n")
