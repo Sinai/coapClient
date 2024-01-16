@@ -9,6 +9,10 @@
         {
             "key": "KEY_SERVER_PORT", 
             "value": 5683
+        },
+        { 
+            "key": "KEY_SYSTEM_ID", 
+            "value": "1134885" 
         }, 
         {
             "key": "KEY_LOG_DIR", 

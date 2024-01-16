@@ -36,6 +36,7 @@ class CoapClient():
       self.dateFormat = None
       self.data = {}
       self.currentPath=os.getcwd()
+      self.clientId = None
    
    def initialize(self):
 
@@ -49,9 +50,10 @@ class CoapClient():
       self.proxy = self.helper.getSettingValue("KEY_SERVER_PROXY")
       self.host, self.port, self.path = parse_uri(self.completePath)
 
-      #get datetime format
+      #get variable
       self.dateFormat = self.helper.getSettingValue("KEY_DATETIME_FORMAT")
-      #hablde logging
+      self.clientId = self.helper.getSettingValue("KEY_SYSTEM_ID")
+      #logging
       self.setLogger()
       self.logger.info("the date formatter After the settings value: %s"% self.dateFormat)
       #get Token     
@@ -126,11 +128,8 @@ class CoapClient():
    def completePayload(self, payload):
        if self.dateFormat != None:
           self.logger.info("the date formatter: %s"% self.dateFormat)
-          date = datetime.now().strftime(self.dateFormat)
-          self.logger.info("The DATE: %s"%date)
-          self.data['Date'] =  date
-          self.data['DeviceId'] = "11233433"
-          self.data['tag']  = payload
+          self.data["DeviceId"] = self.clientId
+          self.data["tag"]  = payload
           json_data = json.dumps(self.data)
           return json_data
        return None   
