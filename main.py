@@ -8,10 +8,10 @@ import signal
 import sys
 from Security.tokenHandler import TokenHandler 
 
-tagOne="4541535930898910027"
-tagTwo="4541535930898910028"
-tagThree="4541535930898910029"
-tagFour="4541535930898910030"
+tagOne="45415359308989100027"
+tagTwo="45415359308989100028"
+tagThree="45415359308989100029"
+tagFour="45415359308989100030"
 client = None
 logger = None
 token = None
@@ -44,7 +44,8 @@ def putTester():
     #value = addTokenPayload(tagOne, token)
     
     if client!=None:
-       value = client.encodePayload(tagOne)
+       #value = client.encodePayload(tagOne)
+       value = client.completePayload(tagOne)
        logger.info("Going to sent tagOne - encoded: %s" % value)
        client.operation("PUT", value)
 
@@ -54,21 +55,24 @@ def putTester():
        time.sleep(30)
 
        #value = addTokenPayload(tagTwo, token)
-       value = client.encodePayload(tagTwo)
+       #value = client.encodePayload(tagTwo)
+       value = client.completePayload(tagTwo)
        client.operation("PUT", value)
        logger.info("Just did a PUT for tagTwo")
 
        time.sleep(30)
     
        #value = addTokenPayload(tagThree, token)
-       value = client.encodePayload(tagThree)
+       #value = client.encodePayload(tagThree)
+       value = client.completePayload(tagThree)
        client.operation("PUT", value)
        logger.info("Just did a PUT for tagThree")
 
        time.sleep(30)
 
        #value = addTokenPayload(tagFour, token)
-       value = client.encodePayload(tagFour)
+       #value = client.encodePayload(tagFour)
+       value = client.completePayload(tagFour)
        client.operation("PUT", value)
        logger.info("Just did a PUT for tagFour")
 
@@ -118,23 +122,30 @@ def main():
     client.starClient()
     #print("Client started , going to do a PUT\n")
     
-    #putTester()
-    getTester()
+    putTester()
+    #getTester()
+    
+    logger.info("Before client stop!")
 
     client.stop()
 
+    logger.info("After client stop!")
+
     logger.info("Going to stop")
+    stop()
 
 
 def stop():
-    global logger
+    global logger, client
     if logger!=None:
        logger.info("Going to shutdown")
-    client.stop()
+    if client!=None:
+       client.stop()
     sys.exit(0)
 
 def handler(signum, frame):
     global logger
+    print("Received an sig term!!!!!!\n")
     if logger!=None:
        logger.info("Received a sigterm\n")
     stop()

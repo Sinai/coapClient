@@ -2,6 +2,7 @@
 
 import os
 import time
+from datetime import datetime
 import json
 import ipaddress
 import sys
@@ -18,7 +19,7 @@ from os import mkdir, getcwd
 from coapthon.layers.messagelayer import MessageLayer
 
 
-class CoapClient(MessageLayer):
+class CoapClient():
   
    def __init__(self):
       self.completePath = None
@@ -31,6 +32,9 @@ class CoapClient(MessageLayer):
       self.logger = None
       self.helper = None
       self.token = None
+      self.date = None
+      self.dateFormat = None
+      self.data = {}
       self.currentPath=os.getcwd()
    
    def initialize(self):
@@ -44,15 +48,20 @@ class CoapClient(MessageLayer):
       self.completePath = self.helper.getSettingValue("KEY_SERVER_PATH")
       self.proxy = self.helper.getSettingValue("KEY_SERVER_PROXY")
       self.host, self.port, self.path = parse_uri(self.completePath)
+
+      #get datetime format
+      self.dateFormat = self.helper.getSettingValue("KEY_DATETIME_FORMAT")
       #hablde logging
       self.setLogger()
-      #get Token
+      self.logger.info("the date formatter After the settings value: %s"% self.dateFormat)
+      #get Token     
       token = self.helper.getSettingValue("KEY_SECURITY_TOKEN") 
       self.logger.info("I got the following token from settings: %s" % token)
       self.token = str.encode(str(token)) #convert it to bytes
         
 
-   def receive_response(self, response):
+   def receive_response_get(self, response):
+       self.logger.info("call to receive_response_get")
        if response!=None and response!="":
           self.logger.info("FROM RECEIVE_RESPONSE Got the following response:")
           self.logger.info(response)
@@ -114,6 +123,19 @@ class CoapClient(MessageLayer):
           return payloadComplete
        return None
 
+   def completePayload(self, payload):
+       if self.dateFormat != None:
+          self.logger.info("the date formatter: %s"% self.dateFormat)
+          date = datetime.now().strftime(self.dateFormat)
+          self.logger.info("The DATE: %s"%date)
+          self.data['Date'] =  date
+          self.data['DeviceId'] = "11233433"
+          self.data['tag']  = payload
+          json_data = json.dumps(self.data)
+          return json_data
+       return None   
+
+
    def handleGet(self, response):
        if response!=None and response!="":
           payload = response.payload
@@ -149,11 +171,11 @@ class CoapClient(MessageLayer):
              self.logger.error("Error while performing a DELETE operation, client: %s,  path: %s , proxy: %s" % (self.client, self.path, self.proxy))  
        elif operation=="GET":
           if self.path!=None and self.proxy!=None and self.client!=None:
-             response = self.client.get(self.path, self.proxy)
+             recieved = self.client.get(self.path, self.proxy, self.receive_response_get)
              time.sleep(10) # wait for response
              self.logger.info("Response: ")
-             self.logger.info(response)
-             self.handleGet(response)
+             self.logger.info(recieved)
+             self.handleGet(recieved)
           else:
              self.logger.error("Error while performing a GET operation, client: %s,  path: %s , proxy: %s" % (self.client, self.path, self.proxy))
 
@@ -161,4 +183,4 @@ class CoapClient(MessageLayer):
    def stop(self):
        if self.client != None:
           self.client.stop()
-       sys.exit(0)   
+       
