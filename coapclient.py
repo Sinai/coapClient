@@ -19,6 +19,13 @@ from os import mkdir, getcwd
 from coapthon.layers.messagelayer import MessageLayer
 
 
+
+
+
+
+
+
+
 class CoapClient():
   
    def __init__(self):
@@ -30,6 +37,7 @@ class CoapClient():
       self.path = None
       self.client = None
       self.logger = None
+      self.error = False
       self.helper = None
       self.token = None
       self.userName = None
@@ -39,6 +47,7 @@ class CoapClient():
       self.data = {}
       self.currentPath=os.getcwd()
       self.clientId = None
+      self.connected = False
    
    def initialize(self):
 
@@ -57,28 +66,27 @@ class CoapClient():
       #logging
       self.setLogger()
       self.logger.info("the date formatter After the settings value: %s"% self.dateFormat)
-      #get Token     
-      #token = self.helper.getSettingValue("KEY_SECURITY_TOKEN") 
-      #self.logger.info("I got the following token from settings: %s" % token)
-      #self.token = str.encode(str(token)) #convert it to bytes
    
    def setServerPath(self, type):
 
-       if type!=None and type=="tags":
+       if type!=None and type=="tags/":
           self.completePath = self.helper.getSettingValue("KEY_SERVER_PATH_TAGS")
           self.proxy = self.helper.getSettingValue("KEY_SERVER_PROXY")
           self.host, self.port, self.path = parse_uri(self.completePath)
-       elif type!=None and type=="auth":
+       elif type!=None and type=="auth/":
           self.completePath = self.helper.getSettingValue("KEY_SERVER_PATH_AUTH")
           self.proxy = self.helper.getSettingValue("KEY_SERVER_PROXY")
           self.host, self.port, self.path = parse_uri(self.completePath)
+          self.logger.info("host: %s , port: %s , path: %s"%(self.host, self.port, self.path))
        else:
           self.logger.error("Could not get the correct server path for type: %s"%type)     
+          self.error = True       
+
 
    def receive_response_get(self, response):
        self.logger.info("call to receive_response_get")
        if response!=None and response!="":
-          self.logger.info("FROM RECEIVE_RESPONSE Got the following response:")
+          self.logger.info("FROM RECEIVE_RESPONSE Got the following response:") 
           self.logger.info(response)
 
 
@@ -87,7 +95,20 @@ class CoapClient():
        if response!=None and response!="":
           self.logger.info("We got the following response: %s"% response)
           self.logger.info("We got the following response payload: %s"% response.payload)
+          data =  json.loads(response.payload)
 
+          if "token" in  data:
+             self.logger.info("Detected that token was in the data")
+             self.logger.info("token: %s" % data["token"])
+             self.logger.info("Signed %d" % data["signedOK"])
+             if data["signedOK"]==1:
+                self.connected = True
+                self.token = data["token"]
+
+          else:
+             self.logger.info("Detected different response than AUTH from server")
+
+          #self.token = data["token"]
 
    def starClient(self):
        #path
@@ -179,7 +200,8 @@ class CoapClient():
    def operation(self, operation, payload, path):
        self.logger.info("CoAP client operation: %s , with payload: %s and path: %s " % (operation, payload, path))
        #set the correct path
-       if path!=None:
+       if path!=None and  path!=self.path:
+          self.logger.info("The path: %s" % path)
           self.setServerPath(path)
 
        #perform operation

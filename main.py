@@ -102,7 +102,7 @@ def getTester():
   
 def authTester():
     global client, logger
-    path = "auth"
+    path = "auth/"
     if logger!=None:
        logger.info("GET client started for auth test!")
     if client!=None:
@@ -117,13 +117,31 @@ def authTester():
           logger.info("Going to Third auth with  - payload: %s" % authPayload)
           client.operation("PUT", authPayload, path) 
           time.sleep(10)
- 
 
+
+
+def authenticateServer(path):
+    global client, logger
+    if client!=None:
+       authPayload = client.getAuthenticationPayload()
+       logger.info("Going to auth with  - payload: %s" % authPayload)
+       client.operation("PUT", authPayload, path)
+
+
+def transmissionTester():
+    global client, logger
+    authPath = "auth/"
+    tagPath = "tag/"
+    authenticateServer(authPath)
+    while not client.connected:
+          time.sleep(10)
+          logger.info("Client Not Connected")     
+       
+    logger.info("Clinet is Connected")
     
 
 def main():
     global logger, client
-
     print("Main:  Going to start\n")
     client = CoapClient()
     client.initialize()
@@ -140,14 +158,16 @@ def main():
     #print("After the initialization\n")
     logger.info("After the initialization\n")
 
-    client.setServerPath("auth")
+    client.setServerPath("auth/")
 
     client.starClient()
     #print("Client started , going to do a PUT\n")
     
     #putTester()
     #getTester()
-    authTester()
+    #authTester()
+    transmissionTester()    
+
     
     logger.info("Before client stop!")
 
