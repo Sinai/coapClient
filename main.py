@@ -12,6 +12,10 @@ tagOne="4541535930898910003327"
 tagTwo="4541535930898910003328"
 tagThree="4541535930898910003329"
 tagFour="4541535930898910003330"
+tagFive="4541535930898910003331"
+tagSix="4541535930898910003332"
+tagSeven="4541535930898910003333"
+
 client = None
 logger = None
 token = None
@@ -33,7 +37,7 @@ def addTokenPayload(self, payload, token):
        else:
           valuePayload=payload
        valueReturn=valueToken+valuePayload
-       return valueReturn  
+       return valueReturn
     return None
 
 def putTester():
@@ -133,11 +137,57 @@ def transmissionTester():
     authPath = "auth/"
     tagPath = "tag/"
     authenticateServer(authPath)
-    while not client.connected:
+    while not client.clientIsConnected():
           time.sleep(10)
           logger.info("Client Not Connected")     
        
-    logger.info("Clinet is Connected")
+    logger.info("Client is Connected")
+    #time.sleep(5) # wait 5 seconds 
+    #Now we are signed and can start sending tags
+    payload = client.completePayload(tagOne)
+    if payload!=None:
+       logger.info("Going to sent the following payload: %s" % payload) 
+       client.operation("PUT", payload, tagPath)
+    else:
+       logger.info("Received an empty payload")
+       sys.exit()
+    time.sleep(30)  # 30 seconden wachten
+    payload = clinet.completePayload(tagTwo)
+    if payload!=None:
+       logger.info("Going to sent the following payload: %s" % payload)
+       client.operation("PUT", payload, tagPath)
+    else:
+       logger.info("Received an empty payload")
+       sys.exit()
+    time.sleep(30)
+    payload = clinet.completePayload(tagThree)
+    if payload!=None:
+       logger.info("Going to sent the following payload: %s" % payload)
+       client.operation("PUT", payload, tagPath)
+    else:
+       logger.info("Received an empty payload")
+       sys.exit()
+    time.sleep(30)
+    payload = clinet.completePayload(tagFour)
+    if payload!=None:
+       logger.info("Going to sent the following payload: %s" % payload)
+       client.operation("PUT", payload, tagPath)
+    else:
+       logger.info("Received an empty payload")
+       sys.exit()
+    time.sleep(30)
+
+
+
+
+    
+
+
+
+       
+                   
+
+    
     
 
 def main():
@@ -168,6 +218,7 @@ def main():
     #authTester()
     transmissionTester()    
 
+    logger.info("All done!")
     
     logger.info("Before client stop!")
 

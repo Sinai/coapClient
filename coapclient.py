@@ -7,9 +7,11 @@ import json
 import ipaddress
 import sys
 import logging
+import logging.handlers
 import signal
 import getopt
 import socket
+#import bcrypt
 
 from coapthon.client.helperclient import HelperClient
 from coapthon.utils import parse_uri
@@ -17,12 +19,6 @@ from settingshelper import SettingsHelper
 from os.path import join, isfile, isdir
 from os import mkdir, getcwd
 from coapthon.layers.messagelayer import MessageLayer
-
-
-
-
-
-
 
 
 
@@ -62,7 +58,7 @@ class CoapClient():
       self.dateFormat = self.helper.getSettingValue("KEY_DATETIME_FORMAT")
       self.clientId = self.helper.getSettingValue("KEY_SYSTEM_ID")
       self.userName = self.clientId
-      self.passW = self.helper.getSettingValue("KEY_SERVER_PASSWORD")
+      self.passW = self.helper.getSettingValue("KEY_SERVER_PASSWORD") #Hashed password!
       #logging
       self.setLogger()
       self.logger.info("the date formatter After the settings value: %s"% self.dateFormat)
@@ -102,6 +98,7 @@ class CoapClient():
              self.logger.info("token: %s" % data["token"])
              self.logger.info("Signed %d" % data["signedOK"])
              if data["signedOK"]==1:
+                self.logger.info("Token: %s" % data["token"])
                 self.connected = True
                 self.token = data["token"]
 
@@ -122,10 +119,14 @@ class CoapClient():
            self.logger.error("gaierror while trying to init client")
            pass
        self.client = HelperClient(server=(self.host, self.port))
+
+
+   def clientIsConnected(self):
+       return self.connected
       
 
    def setLogger(self):
-
+       print("Starting point of setting loggers\n")
        formatter = logging.Formatter("%(asctime)s.%(msecs)03d(%(levelname)s)|%(name)s=>%(funcName)s:%(lineno)d: %(message)s","%Y-%m-%d,%H:%M:%S")
        if self.helper!=None:
           loggerPath = self.helper.getSettingValue("KEY_LOG_DIR")
@@ -157,33 +158,45 @@ class CoapClient():
        loggerRoot.addHandler(errorlog)
 
        self.logger = logging.getLogger(__name__)
+       print("End point of setting loggers\n")
 
 
    def getAuthenticationPayload(self):
        if self.userName!=None and self.passW!=None:
           self.data = {}
           self.data["Id"] = self.userName
-          self.data["Passw"] = self.passW
+          passwordBytes = self.passW.encode('utf-8')
+          #saltBytes = bcrypt.gensalt(12)
+          #hashedPassword=bcrypt.hashpw(passwordBytes, saltBytes)
+          #hashedPasswordDecoded = hashedPassword.decode('utf-8')
+        
+          self.data["Passw"] = passwordBytes
           json_data = json.dumps(self.data)
           return json_data
        else:
           self.logger.error("Error creating auth payload, usr: %s and passw: %s" % (self.userName, self.passW))
           return None
 
-   def encodePayload(self, payload):
+   def encodePayload(self, tag):
        self.logger.info("Going to encode payload: %s"%payload)
-       if payload!=None and payload!="" and self.token!=None:
-          payloadBytes = str.encode(str(payload))
-          payloadComplete=payloadBytes + self.token
-          return payloadComplete
-       return None
+       if self.token!=None and tag!=None:
+          valueReturn=str(self.token)+str(tag)
+          return valueReturn
+    return None
 
-   def completePayload(self, payload):
-       if self.dateFormat != None:
-          self.logger.info("the date formatter: %s"% self.dateFormat)
-          self.data["DeviceId"] = self.clientId
-          self.data["tag"]  = payload
-          json_data = json.dumps(self.data)
+
+   def completePayload(self, tag):
+       if self.clientId != None and self.token != None and :
+          #self.logger.info("the date formatter: %s"% self.dateFormat)
+          #self.data["DeviceId"] = self.clientId
+          #self.data["tag"]  = payload
+          #passWBytes = self.passW.encode('utf-8')  it is haseh dureing json creation
+          data = self.encodePayload(tag)
+          if data!=None:
+             payload = {}
+             payload["data"] = data
+             payload["Id"] = self.clientId
+          json_data = json.dumps(payload)
           return json_data
        return None   
 
